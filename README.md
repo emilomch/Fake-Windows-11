@@ -1,0 +1,182 @@
+# WERSJA APLIKACJI
+
+1.0
+
+# CO POTRAFI:
+
+Odpalanie, Odczytywanie plików czas 30 sekund.
+, Weryfikowanie Plików 5 minut.
+
+# Co będzie w nastepnej aktualizacji?
+
+dodamy instalator systemu windows, wstepne ekrany i mechanike terminala.
+nowe ekonomiczne kólko do windowsa 11
+Bardziej stylowe windows 10 w kólkach.
+
+# LINK DO HTML: (code)
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Boot Screen Lenovo + Windows Loader</title>
+<style>
+  body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-family: "Segoe UI", sans-serif;
+    overflow: hidden;
+    color: #fff;
+  }
+
+  /* Logo Lenovo z TM */
+  .logo-container {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 40px;
+    transition: opacity 1s ease;
+  }
+
+  .logo-text {
+    color: #fff;
+    font-size: 48px;
+    font-weight: bold;
+    position: relative;
+  }
+
+  .tm {
+    font-size: 16px;
+    vertical-align: super;
+    margin-left: 2px;
+  }
+
+  /* Windows 11 loader */
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid transparent;
+    border-top: 4px solid #fff;
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+    transition: transform 1s ease, opacity 1s ease;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+
+  .hidden { opacity: 0; }
+
+  /* Windows 10 loader */
+  .win10-loader-container {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .win10-spinner {
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,0.2);
+    border-top: 3px solid #fff;
+    border-radius: 50%;
+    animation: spin10 1s linear infinite;
+  }
+
+  @keyframes spin10 {
+    0% { transform: rotate(0deg);}
+    100% { transform: rotate(360deg);}
+  }
+
+  .win10-text {
+    font-size: 16px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- Logo Lenovo -->
+<div class="logo-container" id="logo">
+  <div class="logo-text">Lenovo<span class="tm">TM</span></div>
+</div>
+
+<!-- Windows 11 loader -->
+<div class="spinner" id="spinner"></div>
+
+<!-- Windows 10 loader -->
+<div class="win10-loader-container" id="win10Loader">
+  <div class="win10-spinner"></div>
+  <div class="win10-text" id="loaderText">Odczytywanie plików, może to potrwać do 1 godziny</div>
+</div>
+
+<script>
+  const spinner = document.getElementById('spinner');
+  const logo = document.getElementById('logo');
+  const win10Loader = document.getElementById('win10Loader');
+  const loaderText = document.getElementById('loaderText');
+
+  function startBootCycle(stage = 1) {
+    // Reset wszystkiego
+    logo.classList.remove('hidden');
+    spinner.classList.remove('hidden');
+    win10Loader.style.display = 'none';
+    spinner.style.transform = 'rotate(0deg)';
+    spinner.style.animation = 'spin 2s linear infinite';
+    loaderText.textContent = stage === 1 
+      ? "Odczytywanie plików, może to potrwać do 1 godziny"
+      : "Weryfikowanie plików 0%";
+
+    // Windows 11 loader przez 10s
+    setTimeout(() => {
+      spinner.style.animation = 'spin 4s linear infinite';
+
+      setTimeout(() => {
+        spinner.style.animation = 'none';
+        spinner.style.transform = 'rotate(180deg)';
+
+        setTimeout(() => {
+          logo.classList.add('hidden');
+          spinner.classList.add('hidden');
+
+          // Pokaz loader Windows 10
+          win10Loader.style.display = 'flex';
+
+          if(stage === 1){
+            // Ekran odczytywania plików przez 30s
+            setTimeout(() => {
+              // Restart – drugi etap boot
+              win10Loader.style.display = 'none';
+              startBootCycle(2); // druga faza
+            }, 30000); // 30s
+          } else if(stage === 2){
+            // Weryfikowanie plików 0–100% przez 5 minut
+            let progress = 0;
+            const interval = setInterval(() => {
+              progress++;
+              loaderText.textContent = `Weryfikowanie plików ${progress}%`;
+              if(progress >= 100) clearInterval(interval);
+            }, 3000); // 5 minut = 300s, 100 kroków → 3s na krok
+          }
+
+        }, 800);
+
+      }, 1000);
+
+    }, 10000);
+  }
+
+  startBootCycle(); // start
+</script>
+
+</body>
+</html>
